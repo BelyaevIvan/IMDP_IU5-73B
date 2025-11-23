@@ -1,0 +1,86 @@
+<mxfile host="Electron" modified="2025-11-23T10:16:44.597Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.0 Chrome/114.0.5735.289 Electron/25.8.3 Safari/537.36" etag="6pisth21INSPh3U8ou7x" version="22.0.0" type="device">
+  <diagram name="Страница — 1" id="KuflDnojEgo6qgx47jbF">
+    <mxGraphModel dx="2352" dy="2437" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-1" value="Генератор команд" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-2" value="Администратор" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-3" value="Зона ожидания (очередь)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="361" y="137" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-4" value="Отказ" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="361" y="-20" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-5" value="Хоккейная коробка" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="137" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-1" target="I4Hvr8arNyYcK6uJkFYY-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="20" y="90" as="sourcePoint" />
+            <mxPoint x="270" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-7" value="Команды" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="20" y="60" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-8" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-2" target="I4Hvr8arNyYcK6uJkFYY-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="260" y="170" as="sourcePoint" />
+            <mxPoint x="310" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-9" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-2" target="I4Hvr8arNyYcK6uJkFYY-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="220" y="100" as="sourcePoint" />
+            <mxPoint x="320" y="20" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-11" value="В очереди есть место?" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="220" y="50" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-12" value="Нет" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="-20" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-13" value="Да" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="301" y="167" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-14" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="280" y="170" as="sourcePoint" />
+            <mxPoint x="360" y="-70" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="530" y="10" />
+              <mxPoint x="530" y="-70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-15" value="Выход из системы" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="391" y="-100" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-17" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-3" target="I4Hvr8arNyYcK6uJkFYY-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="350" as="sourcePoint" />
+            <mxPoint x="600" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-18" value="Если коробка свободна - первая в очереди команда заходит играть" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="152" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-21" value="Конец игры - коробка освобождается" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="160" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4Hvr8arNyYcK6uJkFYY-22" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="I4Hvr8arNyYcK6uJkFYY-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="820" y="280" as="sourcePoint" />
+            <mxPoint x="890" y="167" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

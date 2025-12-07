@@ -1,4 +1,4 @@
-
+# model.py
 import simpy
 import random
 
@@ -68,13 +68,18 @@ def group_process(env, group_id, rink, rink_resource, waiting_room, params, stat
         # Мест нет - отказ
         stats.rejected_groups += 1
         print(f"⛔ Группа {group_id} получила ОТКАЗ в момент времени {env.now:.2f} мин. (Очередь: {len(waiting_room.items)}/{params['K']})")
+        
+        # ЗАПИСЫВАЕМ ДЛИНУ ОЧЕРЕДИ ПРИ ОТКАЗЕ (это важно!)
+        stats.queue_lengths.append(len(waiting_room.items))
+        stats.queue_times.append(env.now)
         return
     
     # Есть место - встаем в очередь
     print(f"👥 Группа {group_id} встала в ОЧЕРЕДЬ в момент времени {env.now:.2f} мин. (Очередь: {len(waiting_room.items)+1}/{params['K']})")
     
-    # Запоминаем длину очереди ДО нашего прихода (для статистики)
-    stats.queue_lengths.append(len(waiting_room.items))
+    # ЗАПИСЫВАЕМ ДЛИНУ ОЧЕРЕДИ ПОСЛЕ НАШЕГО ПРИХОДА (исправлено!)
+    # Теперь длина будет включать и нашу группу
+    stats.queue_lengths.append(len(waiting_room.items) + 1)  # +1 потому что мы уже в очереди
     stats.queue_times.append(env.now)
     
     # Помещаем группу в зону ожидания

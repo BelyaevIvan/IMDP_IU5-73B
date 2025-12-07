@@ -266,37 +266,6 @@ else:
         plt.tight_layout()
         st.pyplot(fig)
         
-        # График качества льда во времени
-        if show_ice_quality and hasattr(results, 'ice_quality_times') and results.ice_quality_times:
-            st.markdown("---")
-            st.subheader("📈 Динамика качества льда во времени")
-            
-            # Подготовка данных
-            times = [t for t, q in results.ice_quality_times]
-            qualities = [q for t, q in results.ice_quality_times]
-            
-            # Ограничим количество точек для лучшей читаемости
-            if len(times) > 500:
-                step = len(times) // 500
-                times = times[::step]
-                qualities = qualities[::step]
-            
-            fig_ice, ax_ice = plt.subplots(figsize=(12, 4))
-            ax_ice.plot(times, qualities, alpha=0.7, color='purple', linewidth=1)
-            ax_ice.fill_between(times, 0, qualities, alpha=0.3, color='purple')
-            ax_ice.set_xlabel('Время моделирования (минуты)')
-            ax_ice.set_ylabel('Качество льда (0-1)')
-            ax_ice.set_title('Изменение качества льда во времени')
-            ax_ice.grid(True, alpha=0.3)
-            ax_ice.set_ylim(0, 1.1)
-            
-            # Добавим горизонтальные линии для порогов
-            ax_ice.axhline(y=0.5, color='r', linestyle='--', alpha=0.5, label='Порог "плохого" льда (0.5)')
-            ax_ice.axhline(y=0.8, color='y', linestyle='--', alpha=0.5, label='Среднее качество (0.8)')
-            ax_ice.legend()
-            
-            st.pyplot(fig_ice)
-        
         # Расширенная статистика
         if show_detailed_stats:
             st.markdown("---")
@@ -407,26 +376,105 @@ else:
                 }
                 st.table(pd.DataFrame(queue_data))
                 
-                # График длины очереди во времени
+                # Ступенчатый график длины очереди во времени
                 st.markdown("**Динамика длины очереди:**")
-                fig_queue, ax_queue = plt.subplots(figsize=(10, 4))
-                # Ограничим количество точек для графика
-                if len(results.queue_times) > 200:
-                    step = len(results.queue_times) // 200
-                    times = results.queue_times[::step]
-                    lengths = results.queue_lengths[::step]
-                else:
+                fig_queue, ax_queue = plt.subplots(figsize=(12, 4))
+                
+                if hasattr(results, 'queue_times') and results.queue_times:
+                    # Для ступенчатого графика нужно отсортировать данные по времени
                     times = results.queue_times
                     lengths = results.queue_lengths
+                    
+                    # Создаем ступенчатый график
+                    ax_queue.step(times, lengths, where='post', alpha=0.7, linewidth=1.5, color='#2196F3')
+                    ax_queue.fill_between(times, 0, lengths, step='post', alpha=0.3, color='#2196F3')
+                    
+                    # Добавляем среднюю линию
+                    if len(lengths) > 0:
+                        avg_length = np.mean(lengths)
+                        ax_queue.axhline(y=avg_length, color='red', linestyle='--', alpha=0.7, 
+                                       linewidth=1.5, label=f'Средняя: {avg_length:.2f} групп')
+                    
+                    # Добавляем максимальную линию
+                    max_length = max(lengths)
+                    ax_queue.axhline(y=max_length, color='orange', linestyle=':', alpha=0.5, 
+                                   linewidth=1, label=f'Максимум: {max_length} групп')
+                    
+                    # Добавляем линию вместимости очереди
+                    ax_queue.axhline(y=K, color='green', linestyle='-.', alpha=0.5, 
+                                   linewidth=1, label=f'Вместимость: {K} групп')
+                    
+                    ax_queue.set_xlabel('Время моделирования (минуты)')
+                    ax_queue.set_ylabel('Длина очереди (групп)')
+                    ax_queue.set_title('Изменение длины очереди во времени (ступенчатый график)')
+                    ax_queue.grid(True, alpha=0.3)
+                    ax_queue.set_ylim(bottom=0, top=max(max_length + 1, K + 1))
+                    ax_queue.legend(loc='upper right')
+                    ax_queue.set_xlim(left=0)
                 
-                ax_queue.plot(times, lengths, alpha=0.7, linewidth=1)
-                ax_queue.fill_between(times, 0, lengths, alpha=0.3)
-                ax_queue.set_xlabel('Время (минуты)')
-                ax_queue.set_ylabel('Длина очереди (групп)')
-                ax_queue.set_title('Изменение длины очереди во времени')
-                ax_queue.grid(True, alpha=0.3)
-                ax_queue.set_ylim(bottom=0)
                 st.pyplot(fig_queue)
+        
+        # График качества льда во времени (ступенчатый)
+        if show_ice_quality and hasattr(results, 'ice_quality_times') and results.ice_quality_times:
+            st.markdown("---")
+            st.subheader("📈 Динамика качества льда во времени")
+            
+            # Подготовка данных для ступенчатого графика
+            times = [t for t, q in results.ice_quality_times]
+            qualities = [q for t, q in results.ice_quality_times]
+            
+            # Создаем ступенчатый график
+            fig_ice, ax_ice = plt.subplots(figsize=(12, 4))
+            
+            if len(times) > 1:
+                # Создаем ступенчатый график
+                ax_ice.step(times, qualities, where='post', alpha=0.7, linewidth=1.5, color='purple')
+                ax_ice.fill_between(times, 0, qualities, step='post', alpha=0.3, color='purple')
+                
+                # Рассчитываем среднее качество льда
+                avg_quality = np.mean(qualities)
+                ax_ice.axhline(y=avg_quality, color='blue', linestyle='--', alpha=0.7, 
+                             linewidth=1.5, label=f'Среднее: {avg_quality:.3f}')
+                
+                # Рассчитываем медианное качество льда
+                median_quality = np.median(qualities)
+                ax_ice.axhline(y=median_quality, color='cyan', linestyle='-.', alpha=0.7, 
+                             linewidth=1, label=f'Медиана: {median_quality:.3f}')
+                
+                # Добавим горизонтальные линии для порогов
+                ax_ice.axhline(y=0.5, color='r', linestyle='--', alpha=0.5, 
+                             linewidth=1, label='Порог "плохого" льда (0.5)')
+                ax_ice.axhline(y=0.8, color='y', linestyle='--', alpha=0.5, 
+                             linewidth=1, label='Хороший лед (0.8)')
+                
+                # Рассчитываем процент времени с плохим льдом
+                bad_ice_count = sum(1 for q in qualities if q < 0.5)
+                bad_ice_percent = (bad_ice_count / len(qualities)) * 100
+                
+                # Добавляем информационный текст
+                info_text = f'Время с плохим льдом (<0.5): {bad_ice_percent:.1f}%'
+                ax_ice.text(0.02, 0.02, info_text, transform=ax_ice.transAxes, 
+                          bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+                
+                ax_ice.set_xlabel('Время моделирования (минуты)')
+                ax_ice.set_ylabel('Качество льда (0-1)')
+                ax_ice.set_title('Изменение качества льда во времени (ступенчатый график)')
+                ax_ice.grid(True, alpha=0.3)
+                ax_ice.set_ylim(0, 1.1)
+                ax_ice.set_xlim(left=0)
+                ax_ice.legend(loc='upper right')
+                
+                # Добавляем вертикальные линии для заливок льда (если есть информация)
+                if hasattr(results, 'ice_resurfacing_wait_times') and results.ice_resurfacing_wait_times:
+                    # Это упрощенный подход - отметим примерное время заливок
+                    resurfacing_interval = S * 60
+                    for i in range(results.ice_resurfacing_count):
+                        resurfacing_time = (i + 1) * resurfacing_interval
+                        if resurfacing_time <= max(times):
+                            ax_ice.axvline(x=resurfacing_time, color='green', linestyle=':', 
+                                         alpha=0.3, linewidth=0.8)
+            
+            st.pyplot(fig_ice)
         
         # Логи моделирования
         if show_logs:
@@ -450,7 +498,7 @@ else:
 
     else:
         # Сообщение перед запуском
-        st.info("👈 Задайте параметры в боковой панели и нажмите кнопку 'Запустить моделирование'")
+        st.info("👈 Задайте параметры в боковой панели и нажмите кнопку 'Запустить моделирования'")
         
         # Показываем схему процесса до запуска
         try:

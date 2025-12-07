@@ -15,37 +15,44 @@ st.set_page_config(
 )
 
 # Заголовок приложения
-st.title("🏒 Моделирование работы хоккейной коробки")
+st.title("🏒 Моделирование работы хоккейной коробки с заливкой льда")
 st.markdown("---")
 
 # Боковая панель с параметрами
 st.sidebar.header("⚙️ Параметры моделирования")
 
-# Поля ввода параметров
-T = st.sidebar.number_input("Время моделирования (часы)", min_value=1, max_value=100, value=10)
-N = st.sidebar.number_input("Средний интервал между группами (N)", min_value=1, max_value=60, value=5, help="Должен быть ≥ M")
-M = st.sidebar.number_input("Разброс интервала (M)", min_value=0, max_value=20, value=4, help="Должен быть ≤ N")
-A = st.sidebar.number_input("Среднее время игры (A)", min_value=1, max_value=120, value=12, help="Должно быть ≥ B")
-B = st.sidebar.number_input("Разброс времени игры (B)", min_value=0, max_value=30, value=8, help="Должен быть ≤ A")
-K = st.sidebar.number_input("Максимальный размер очереди (K)", min_value=1, max_value=20, value=5)
+# Основные параметры системы
+st.sidebar.subheader("Основные параметры")
+T = st.sidebar.number_input("Время моделирования (T, часы)", min_value=1, max_value=100, value=10)
+N = st.sidebar.number_input("Средний интервал между группами (N, мин)", min_value=1, max_value=60, value=5, help="Должен быть ≥ M")
+M = st.sidebar.number_input("Разброс интервала (M, мин)", min_value=0, max_value=20, value=4, help="Должен быть ≤ N")
+A = st.sidebar.number_input("Среднее время игры (A, мин)", min_value=1, max_value=120, value=12, help="Должно быть ≥ B")
+B = st.sidebar.number_input("Разброс времени игры (B, мин)", min_value=0, max_value=30, value=8, help="Должен быть ≤ A")
+K = st.sidebar.number_input("Максимальный размер очереди (K, групп)", min_value=1, max_value=20, value=5)
+
+# Параметры заливки льда
+st.sidebar.subheader("Параметры заливки льда")
+S = st.sidebar.number_input("Интервал между заливками (S, часы)", min_value=0.5, max_value=24.0, value=2.0, step=0.5, 
+                           help="Через сколько часов требуется новая заливка льда")
+L = st.sidebar.number_input("Время заливки льда (L, минуты)", min_value=5, max_value=120, value=30,
+                           help="Сколько минут занимает процедура заливки льда")
 
 # Дополнительные настройки
 st.sidebar.header("📊 Настройки отображения")
 show_logs = st.sidebar.checkbox("Показывать логи моделирования", value=False)
 show_detailed_stats = st.sidebar.checkbox("Показать расширенную статистику", value=True)
+show_ice_quality = st.sidebar.checkbox("Показать график качества льда", value=True)
 
-# ВАЛИДАЦИЯ ПАРАМЕТРОВ (добавь этот блок)
+# ВАЛИДАЦИЯ ПАРАМЕТРОВ
 validation_errors = []
 
-# Проверка, что M <= N (интервал прихода не может быть отрицательным)
+# Проверка основных параметров
 if M > N:
     validation_errors.append(f"❌ Ошибка: Разброс интервала (M={M}) не может быть больше среднего интервала (N={N})")
 
-# Проверка, что B <= A (время игры не может быть отрицательным)
 if B > A:
     validation_errors.append(f"❌ Ошибка: Разброс времени игры (B={B}) не может быть больше среднего времени игры (A={A})")
 
-# Проверка других возможных ошибок
 if N <= 0:
     validation_errors.append("❌ Ошибка: Средний интервал (N) должен быть положительным")
 
@@ -64,6 +71,20 @@ if K <= 0:
 if T <= 0:
     validation_errors.append("❌ Ошибка: Время моделирования (T) должно быть положительным")
 
+# Проверка параметров заливки льда
+if S <= 0:
+    validation_errors.append("❌ Ошибка: Интервал заливки льда (S) должен быть положительным")
+
+if L <= 0:
+    validation_errors.append("❌ Ошибка: Время заливки льда (L) должно быть положительным")
+
+# Проверка разумности интервалов
+if L > S * 60:
+    validation_errors.append(f"⚠️ Предупреждение: Время заливки ({L} мин) больше интервала ({S} ч = {S*60} мин)")
+
+if L > A * 3:
+    validation_errors.append(f"⚠️ Предупреждение: Время заливки ({L} мин) значительно больше среднего времени игры ({A} мин)")
+
 # Показываем ошибки, если они есть
 if validation_errors:
     st.sidebar.error("Обнаружены ошибки в параметрах:")
@@ -79,6 +100,8 @@ if validation_errors:
     st.sidebar.write("• M ≤ N (разброс ≤ среднего интервала)")
     st.sidebar.write("• B ≤ A (разброс ≤ среднего времени игры)")
     st.sidebar.write("• Все значения должны быть положительными")
+    st.sidebar.write("• L должно быть разумным относительно S и A")
+    
 else:   
     # Кнопка запуска моделирования
     if st.sidebar.button("🚀 Запустить моделирование", type="primary"):
@@ -90,13 +113,13 @@ else:
             
             with contextlib.redirect_stdout(log_output):
                 # Запускаем модель с выбранными параметрами
-                params = {'N': N, 'M': M, 'A': A, 'B': B, 'K': K, 'T': T}
+                params = {'N': N, 'M': M, 'A': A, 'B': B, 'K': K, 'T': T, 'S': S, 'L': L}
                 results = run_simulation(params)
             
             logs = log_output.getvalue()
         
-        # Основная область результатов
-        col1, col2, col3, col4 = st.columns(4)
+        # Основная область результатов - 6 колонок
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
         
         with col1:
             st.metric(
@@ -130,15 +153,33 @@ else:
                 delta_color="inverse"
             )
         
+        with col5:
+            bad_ice_percentage = (results.bad_ice_time / (T * 60)) * 100 if T > 0 else 0
+            st.metric(
+                label="Плохой лед",
+                value=f"{bad_ice_percentage:.1f}%",
+                delta=f"{results.bad_ice_time:.1f} мин",
+                delta_color="inverse"
+            )
+        
+        with col6:
+            st.metric(
+                label="Заливок льда",
+                value=results.ice_resurfacing_count,
+                delta=f"+{results.ice_resurfacing_count}"
+            )
+        
         # Визуализация результатов
         st.markdown("---")
         st.subheader("📊 Визуализация результатов")
         
-        # Создаем данные для графиков
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
+        # Создаем данные для графиков - теперь 6 графиков (3x2)
+        fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+        ax1, ax2, ax3 = axes[0]
+        ax4, ax5, ax6 = axes[1]
         
         # График 1: Распределение времени игры (без отрицательных значений)
-        min_game_time = max(0.1, A - B)  # Защита от отрицательных значений
+        min_game_time = max(0.1, A - B)
         max_game_time = A + B
         game_times_example = np.random.uniform(min_game_time, max_game_time, 1000)
         ax1.hist(game_times_example, bins=20, alpha=0.7, color='skyblue', edgecolor='black')
@@ -148,7 +189,7 @@ else:
         ax1.grid(True, alpha=0.3)
         
         # График 2: Распределение интервалов между группами (без отрицательных значений)
-        min_interval = max(0.1, N - M)  # Защита от отрицательных значений
+        min_interval = max(0.1, N - M)
         max_interval = N + M
         intervals_example = np.random.uniform(min_interval, max_interval, 1000)
         ax2.hist(intervals_example, bins=20, alpha=0.7, color='lightgreen', edgecolor='black')
@@ -169,25 +210,92 @@ else:
             ax3.text(0.5, 0.5, 'Нет данных', ha='center', va='center', transform=ax3.transAxes)
             ax3.set_title('Соотношение обслуженных и отклоненных групп')
         
-        # График 4: Загрузка системы (без отрицательных процентов)
-        utilization = max(0, min(100, results.utilization))  # Защита от выхода за 0-100%
-        categories = ['Загрузка коробки', 'Простой коробки']
-        values = [utilization, 100 - utilization]
-        colors_bar = ['#4CAF50', '#E0E0E0']
+        # График 4: Загрузка системы по типам
+        total_time = T * 60
+        game_time_pct = (results.total_game_time / total_time * 100) if total_time > 0 else 0
+        resurfacing_time_pct = (results.total_ice_resurfacing_time / total_time * 100) if total_time > 0 else 0
+        idle_time_pct = max(0, 100 - game_time_pct - resurfacing_time_pct)
+        
+        categories = ['Игры', 'Заливка', 'Простой']
+        values = [game_time_pct, resurfacing_time_pct, idle_time_pct]
+        colors_bar = ['#4CAF50', '#2196F3', '#E0E0E0']
         bars = ax4.bar(categories, values, color=colors_bar, alpha=0.7)
-        ax4.set_ylabel('Процент (%)')
-        ax4.set_title('Загрузка хоккейной коробки')
-        ax4.set_ylim(0, 100)  # Фиксируем ось Y от 0 до 100%
+        ax4.set_ylabel('Процент времени (%)')
+        ax4.set_title('Распределение времени работы коробки')
+        ax4.set_ylim(0, 100)
         ax4.grid(True, alpha=0.3)
         
-        # Добавляем значения на столбцы
         for bar, value in zip(bars, values):
             height = bar.get_height()
             ax4.text(bar.get_x() + bar.get_width()/2., height + 1,
                     f'{value:.1f}%', ha='center', va='bottom')
         
+        # График 5: Время ожидания заливочной машины
+        if hasattr(results, 'ice_resurfacing_wait_times') and results.ice_resurfacing_wait_times:
+            wait_times = results.ice_resurfacing_wait_times
+            ax5.hist(wait_times, bins=min(10, len(wait_times)), alpha=0.7, color='orange', edgecolor='black')
+            ax5.set_xlabel('Время ожидания (минуты)')
+            ax5.set_ylabel('Частота')
+            ax5.set_title('Время ожидания заливочной машины')
+            ax5.grid(True, alpha=0.3)
+            
+            if len(wait_times) > 0:
+                avg_wait = np.mean(wait_times)
+                ax5.axvline(avg_wait, color='red', linestyle='--', alpha=0.7, 
+                           label=f'Среднее: {avg_wait:.1f} мин')
+                ax5.legend()
+        else:
+            ax5.text(0.5, 0.5, 'Нет данных', ha='center', va='center', transform=ax5.transAxes)
+            ax5.set_title('Время ожидания заливочной машины')
+        
+        # График 6: Соотношение качества льда
+        bad_ice_pct = (results.bad_ice_time / total_time * 100) if total_time > 0 else 0
+        good_ice_pct = 100 - bad_ice_pct
+        
+        ice_labels = ['Хороший лед', 'Плохой лед']
+        ice_sizes = [good_ice_pct, bad_ice_pct]
+        ice_colors = ['#66bb6a', '#ef5350']
+        
+        if total_time > 0:
+            ax6.pie(ice_sizes, labels=ice_labels, colors=ice_colors, autopct='%1.1f%%', startangle=90)
+            ax6.set_title('Соотношение качества льда')
+        else:
+            ax6.text(0.5, 0.5, 'Нет данных', ha='center', va='center', transform=ax6.transAxes)
+            ax6.set_title('Соотношение качества льда')
+        
         plt.tight_layout()
         st.pyplot(fig)
+        
+        # График качества льда во времени
+        if show_ice_quality and hasattr(results, 'ice_quality_times') and results.ice_quality_times:
+            st.markdown("---")
+            st.subheader("📈 Динамика качества льда во времени")
+            
+            # Подготовка данных
+            times = [t for t, q in results.ice_quality_times]
+            qualities = [q for t, q in results.ice_quality_times]
+            
+            # Ограничим количество точек для лучшей читаемости
+            if len(times) > 500:
+                step = len(times) // 500
+                times = times[::step]
+                qualities = qualities[::step]
+            
+            fig_ice, ax_ice = plt.subplots(figsize=(12, 4))
+            ax_ice.plot(times, qualities, alpha=0.7, color='purple', linewidth=1)
+            ax_ice.fill_between(times, 0, qualities, alpha=0.3, color='purple')
+            ax_ice.set_xlabel('Время моделирования (минуты)')
+            ax_ice.set_ylabel('Качество льда (0-1)')
+            ax_ice.set_title('Изменение качества льда во времени')
+            ax_ice.grid(True, alpha=0.3)
+            ax_ice.set_ylim(0, 1.1)
+            
+            # Добавим горизонтальные линии для порогов
+            ax_ice.axhline(y=0.5, color='r', linestyle='--', alpha=0.5, label='Порог "плохого" льда (0.5)')
+            ax_ice.axhline(y=0.8, color='y', linestyle='--', alpha=0.5, label='Среднее качество (0.8)')
+            ax_ice.legend()
+            
+            st.pyplot(fig_ice)
         
         # Расширенная статистика
         if show_detailed_stats:
@@ -200,8 +308,15 @@ else:
             avg_wait_time = results.total_wait_time / results.served_groups if results.served_groups > 0 else 0
             efficiency = (results.served_groups / (T * 60)) * 60 if T > 0 else 0  # групп в час
             
-            # Основные метрики
-            col1, col2 = st.columns(2)
+            # Время работы разбитое по типам
+            total_time_min = T * 60
+            game_time_pct = (results.total_game_time / total_time_min * 100) if total_time_min > 0 else 0
+            resurfacing_time_pct = (results.total_ice_resurfacing_time / total_time_min * 100) if total_time_min > 0 else 0
+            idle_time_pct = max(0, 100 - game_time_pct - resurfacing_time_pct)
+            bad_ice_pct = (results.bad_ice_time / total_time_min * 100) if total_time_min > 0 else 0
+            
+            # Основные метрики - 3 колонки
+            col1, col2, col3 = st.columns(3)
             
             with col1:
                 st.markdown("**Основные показатели:**")
@@ -211,14 +326,16 @@ else:
                         'Всего поступило групп',
                         'Обслуженных групп', 
                         'Отклоненных групп',
-                        'Процент отказов'
+                        'Процент отказов',
+                        'Количество заливок'
                     ],
                     'Значение': [
                         f"{T} часов ({T*60} минут)",
                         f"{total_groups} групп",
                         f"{results.served_groups} групп",
                         f"{results.rejected_groups} групп", 
-                        f"{rejection_rate:.2f}%"
+                        f"{rejection_rate:.2f}%",
+                        f"{results.ice_resurfacing_count}"
                     ]
                 }
                 st.table(pd.DataFrame(basic_stats))
@@ -227,21 +344,45 @@ else:
                 st.markdown("**Временные характеристики:**")
                 time_stats = {
                     'Показатель': [
-                        'Коэффициент загрузки',
-                        'Среднее время ожидания',
                         'Общее время игр',
-                        'Общее время ожидания',
-                        'Производительность (групп/час)'
+                        'Общее время заливки',
+                        'Общее время ожидания групп',
+                        'Время плохого льда',
+                        'Среднее время ожидания',
+                        'Среднее время игры'
                     ],
                     'Значение': [
-                        f"{results.utilization:.2f}%",
-                        f"{avg_wait_time:.2f} минут",
-                        f"{results.total_game_time:.2f} минут", 
-                        f"{results.total_wait_time:.2f} минут",
-                        f"{efficiency:.2f}"
+                        f"{results.total_game_time:.1f} мин ({game_time_pct:.1f}%)",
+                        f"{results.total_ice_resurfacing_time:.1f} мин ({resurfacing_time_pct:.1f}%)",
+                        f"{results.total_wait_time:.1f} мин", 
+                        f"{results.bad_ice_time:.1f} мин ({bad_ice_pct:.1f}%)",
+                        f"{avg_wait_time:.2f} мин",
+                        f"{results.total_game_time/results.served_groups:.1f} мин" if results.served_groups > 0 else "0 мин"
                     ]
                 }
                 st.table(pd.DataFrame(time_stats))
+            
+            with col3:
+                st.markdown("**Эффективность и загрузка:**")
+                efficiency_stats = {
+                    'Показатель': [
+                        'Коэффициент загрузки',
+                        'Время простоя',
+                        'Производительность',
+                        'Интервал между заливками',
+                        'Время заливки',
+                        'Эффективность использования'
+                    ],
+                    'Значение': [
+                        f"{results.utilization:.2f}%",
+                        f"{idle_time_pct:.1f}%",
+                        f"{efficiency:.2f} групп/час",
+                        f"{S} часов",
+                        f"{L} минут",
+                        f"{(game_time_pct / (game_time_pct + resurfacing_time_pct) * 100):.1f}%" if (game_time_pct + resurfacing_time_pct) > 0 else "0%"
+                    ]
+                }
+                st.table(pd.DataFrame(efficiency_stats))
             
             # Статистика очереди
             st.markdown("**Статистика очереди:**")
@@ -252,14 +393,16 @@ else:
                         'Средняя длина очереди', 
                         'Медианная длина очереди',
                         'Время с пустой очередью',
-                        'Время с полной очередью'
+                        'Время с полной очередью',
+                        'Процент времени с очередью'
                     ],
                     'Значение': [
                         f"{max(results.queue_lengths)} групп",
                         f"{np.mean(results.queue_lengths):.2f} групп",
                         f"{np.median(results.queue_lengths):.2f} групп",
                         f"{(results.queue_lengths.count(0) / len(results.queue_lengths) * 100):.1f}%",
-                        f"{(results.queue_lengths.count(K) / len(results.queue_lengths) * 100):.1f}%"
+                        f"{(results.queue_lengths.count(K) / len(results.queue_lengths) * 100):.1f}%",
+                        f"{100 - (results.queue_lengths.count(0) / len(results.queue_lengths) * 100):.1f}%"
                     ]
                 }
                 st.table(pd.DataFrame(queue_data))
@@ -267,7 +410,17 @@ else:
                 # График длины очереди во времени
                 st.markdown("**Динамика длины очереди:**")
                 fig_queue, ax_queue = plt.subplots(figsize=(10, 4))
-                ax_queue.plot(results.queue_times[:100], results.queue_lengths[:100], alpha=0.7)
+                # Ограничим количество точек для графика
+                if len(results.queue_times) > 200:
+                    step = len(results.queue_times) // 200
+                    times = results.queue_times[::step]
+                    lengths = results.queue_lengths[::step]
+                else:
+                    times = results.queue_times
+                    lengths = results.queue_lengths
+                
+                ax_queue.plot(times, lengths, alpha=0.7, linewidth=1)
+                ax_queue.fill_between(times, 0, lengths, alpha=0.3)
                 ax_queue.set_xlabel('Время (минуты)')
                 ax_queue.set_ylabel('Длина очереди (групп)')
                 ax_queue.set_title('Изменение длины очереди во времени')
@@ -312,16 +465,27 @@ else:
         st.subheader("ℹ️ О параметрах моделирования")
         
         param_info = {
-            'Параметр': ['N', 'M', 'A', 'B', 'K', 'T'],
+            'Параметр': ['N', 'M', 'A', 'B', 'K', 'T', 'S', 'L'],
             'Описание': [
                 'Среднее время между приходом групп (минуты)',
                 'Разброс времени прихода групп (минуты)',
                 'Среднее время игры (минуты)',
                 'Разброс времени игры (минуты)',
                 'Максимальный размер очереди (групп)',
-                'Время моделирования (часы)'
+                'Время моделирования (часы)',
+                'Интервал между заливками льда (часы)',
+                'Время заливки льда (минуты)'
             ],
-            'Пример': ['5', '4', '12', '8', '5', '10']
+            'Ограничения': [
+                'N ≥ M, N > 0',
+                '0 ≤ M ≤ N',
+                'A ≥ B, A > 0',
+                '0 ≤ B ≤ A',
+                'K > 0',
+                'T > 0',
+                'S > 0',
+                'L > 0'
+            ]
         }
         st.table(pd.DataFrame(param_info))
 
